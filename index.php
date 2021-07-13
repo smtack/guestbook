@@ -1,37 +1,37 @@
 <?php
-$dbhost = '127.0.0.1';
-$dbname = 'guestbook';
-$dbuser = '';
-$dbpass = '';
-$dbchar = 'utf8mb4';
+require_once 'src/init.php';
 
-$dsn = "mysql:host=$dbhost;dbname=$dbname;charset=$dbchar";
+if(isset($_POST['signup'])) {
+  if(empty($_POST['user_name']) || empty($_POST['user_username']) || empty($_POST['user_email']) || empty($_POST['user_password']) || empty($_POST['confirm_password'])) {
+    $message = '<p class="message error">Fill in all fields</p>';
+  } else {
+    $user_name = htmlentities($_POST['user_name']);
+    $user_username = htmlentities($_POST['user_username']);
+    $user_password = $_POST['user_password'];
+    $confirm_password = $_POST['confirm_password'];
+    $password_hash = password_hash($user_password, PASSWORD_BCRYPT);
 
-$opt = [
-  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-  PDO::ATTR_EMULATE_PREPARES => false
-];
-
-try {
-  $pdo = new PDO($dsn, $dbuser, $dbpass, $opt);
-} catch(\PDOException $e) {
-  throw new \PDOException($e->getMessage(), (int)$e->getCode());
+    if($user_password !== $confirm_password) {
+      $message = '<p class="message error">Passwords do not match</p>';
+    } else {
+      $sql = "INSERT INTO users (user_name, user_username, user_email, user_password) VALUES (:user_name, :user_username, :user_email, :user_password)";
+  
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([
+        ':user_name' => $user_name,
+        ':user_username' => $user_username,
+        ':user_email' => htmlentities($_POST['user_email']),
+        ':user_password' => $password_hash
+      ]);
+    
+      $_SESSION['user_name'] = $user_name;
+      $_SESSION['user_username'] = $user_username;
+      $_SESSION['logged_in'] = true;
+    
+      header('Location: home.php');
+    }
+  }
 }
-
-if(isset($_POST['submit'])) {
-  $sql = "INSERT INTO posts (post_name, post_content) VALUES (:post_name, :post_content)";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([
-    ':post_name' => htmlentities($_POST['post_name']),
-    ':post_content' => htmlentities($_POST['post_content'])
-  ]);
-}
-
-$sql = "SELECT * FROM posts ORDER BY post_date DESC";
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
-$posts = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -40,34 +40,45 @@ $posts = $stmt->fetchAll();
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="style.css" rel="stylesheet">
-  <title>Guestbook</title>
+  <link href="css/style.css" rel="stylesheet">
+  <title>Guestbook - Sign Up</title>
 </head>
 <body>
   <div class="header">
-    <h1>Guestbook</h1>
+    <h1><a href="index.php">Guestbook</a></h1>
   </div>
   <div class="container">
-    <div class="submit">
+    <div class="form">
+      <h2>Sign Up</h2>
+
       <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
+        <?php if(isset($message)): ?>
+          <div class="form-group">
+            <?php echo $message; ?>
+          </div>
+        <?php endif; ?>
         <div class="form-group">
-          <input type="text" name="post_name" placeholder="Name"></textarea>
+          <input type="text" name="user_name" placeholder="Name">
         </div>
         <div class="form-group">
-          <textarea name="post_content" placeholder="Post"></textarea>
+          <input type="text" name="user_username" placeholder="Username">
         </div>
         <div class="form-group">
-          <input type="submit" name="submit" value="Post">
+          <input type="text" name="user_email" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" name="user_password" placeholder="Password">
+        </div>
+        <div class="form-group">
+          <input type="password" name="confirm_password" placeholder="Confirm Password">
+        </div>
+        <div class="form-group">
+          <input type="submit" name="signup" value="Sign Up">
+        </div>
+        <div class="form-group">
+          <p>Already have an account? <a href="login.php">Log In</a></p>
         </div>
       </form>
-    </div>
-    <div class="posts">
-      <?php foreach($posts as $post): ?>
-        <div class="post">
-          <p><?php echo $post['post_content']; ?></p>
-          <span>By <?php echo $post['post_name']; ?> on <?php echo date('l j F Y \a\t H:i', strtotime($post['post_date'])); ?></span>
-        </div>
-      <?php endforeach; ?>
     </div>
   </div>
   <div class="footer">
