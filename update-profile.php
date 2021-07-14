@@ -5,32 +5,19 @@ if(!$_SESSION) {
   header('Location: index.php');
 }
 
-$sql = "SELECT * FROM users WHERE user_username = :user_username LIMIT 1";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':user_username' => $_SESSION['user_username']]);
+$user = new User($pdo);
 
-$user_info = $stmt->fetch();
+$user_info = $user->getUser();
+
+$user->user_id = $user_info['user_id'];
 
 if(isset($_POST['update'])) {
   if(empty($_POST['user_name']) || empty($_POST['user_username']) || empty($_POST['user_email'])) {
     $message = '<p class="message error">Fill in all fields</p>';
   } else {
-    $user_name = htmlentities($_POST['user_name']);
-    $user_username = htmlentities($_POST['user_username']);
-  
-    $sql = "UPDATE users SET user_name = :user_name, user_username = :user_username, user_email = :user_email WHERE user_id = :user_id";
-  
-    $stmt = $pdo->prepare($sql);
-  
-    if($stmt->execute([
-      ':user_id' => $user_info['user_id'],
-      ':user_name' => $user_name,
-      ':user_username' => $user_username,
-      ':user_email' => htmlentities($_POST['user_email'])
-    ])) {
-      $_SESSION['user_name'] = $user_name;
-      $_SESSION['user_username'] = $user_username;
-      $_SESSION['logged_in'] = true;
+    if($user->updateUser()) {
+      $_SESSION['user_name'] = $user->user_name;
+      $_SESSION['user_username'] = $user->user_username;
       
       $message = '<p class="message notice">Profile updated successfully</p>';
     } else {
@@ -43,23 +30,13 @@ if(isset($_POST['change_password'])) {
   if(empty($_POST['current_password']) || empty($_POST['new_password']) || empty($_POST['confirm_password'])) {
     $password_message = '<p class="message error">Fill in all fields</p>';
   } else {
-    $current_password = $_POST['current_password'];
-    $new_password = $_POST['new_password'];
-    $new_password_hash = password_hash($new_password, PASSWORD_BCRYPT);
-    
-    if(!password_verify($current_password, $user_info['user_password'])) {
+    if(!password_verify($_POST['current_password'], $user_info['user_password'])) {
       $password_message = '<p class="message error">Enter current password correctly</p>';
     } else {
-      if($new_password !== $_POST['confirm_password']) {
+      if($_POST['new_password'] !== $_POST['confirm_password']) {
         $password_message = '<p class="message error">Passwords must match</p>';
       } else {
-        $sql = "UPDATE users SET user_password = :user_password WHERE user_id = :user_id";
-        $stmt = $pdo->prepare($sql);
-  
-        if($stmt->execute([
-          ':user_id' => $user_info['user_id'],
-          ':user_password' => $new_password_hash
-        ])) {
+        if($user->changePassword()) {
           $password_message = '<p class="message notice">Password changed successfully</p>';
         } else {
           $password_message = '<p class="message error">Unable to change password</p>';
@@ -70,10 +47,9 @@ if(isset($_POST['change_password'])) {
 }
 
 if(isset($_POST['delete_profile'])) {
-  $sql = "DELETE FROM users WHERE user_id = :user_id";
-  $stmt = $pdo->prepare($sql);
-
-  if($stmt->execute([':user_id' => $user_info['user_id']])) {
+  if($user->deleteProfile()) {
+    $user->logOut();
+    
     header('Location: index.php');
   } else {
     $delete_message = '<p class="message error">Unable to delete profile</p>';

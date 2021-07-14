@@ -1,6 +1,8 @@
 <?php
 require_once 'src/init.php';
 
-session_destroy();
+$user = new User($pdo);
+
+$user->logOut();
 
 header('Location: index.php');

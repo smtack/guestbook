@@ -1,34 +1,28 @@
 <?php
 require_once 'src/init.php';
 
+if($_SESSION) {
+  header('Location: home.php');
+}
+
 if(isset($_POST['signup'])) {
   if(empty($_POST['user_name']) || empty($_POST['user_username']) || empty($_POST['user_email']) || empty($_POST['user_password']) || empty($_POST['confirm_password'])) {
     $message = '<p class="message error">Fill in all fields</p>';
   } else {
-    $user_name = htmlentities($_POST['user_name']);
-    $user_username = htmlentities($_POST['user_username']);
-    $user_password = $_POST['user_password'];
-    $confirm_password = $_POST['confirm_password'];
-    $password_hash = password_hash($user_password, PASSWORD_BCRYPT);
-
-    if($user_password !== $confirm_password) {
+    if($_POST['user_password'] !== $_POST['confirm_password']) {
       $message = '<p class="message error">Passwords do not match</p>';
     } else {
-      $sql = "INSERT INTO users (user_name, user_username, user_email, user_password) VALUES (:user_name, :user_username, :user_email, :user_password)";
-  
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute([
-        ':user_name' => $user_name,
-        ':user_username' => $user_username,
-        ':user_email' => htmlentities($_POST['user_email']),
-        ':user_password' => $password_hash
-      ]);
-    
-      $_SESSION['user_name'] = $user_name;
-      $_SESSION['user_username'] = $user_username;
-      $_SESSION['logged_in'] = true;
-    
-      header('Location: home.php');
+      $user = new User($pdo);
+
+      if($user->signUp()) {
+        $_SESSION['user_name'] = $this->user_name;
+        $_SESSION['user_username'] = $this->user_username;
+        $_SESSION['logged_in'] = true;
+        
+        header('Location: home.php');
+      } else {
+        $message = '<p class="message error">Unable to Sign Up</p>';
+      }
     }
   }
 }

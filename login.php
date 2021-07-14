@@ -1,34 +1,24 @@
 <?php
 require_once 'src/init.php';
 
+if($_SESSION) {
+  header('Location: home.php');
+}
+
 if(isset($_POST['login'])) {
-  if(empty($_POST['user_username']) || empty($_POST['user_password'])) {@
+  if(empty($_POST['user_username']) || empty($_POST['user_password'])) {
     $message = '<p class="message error">Enter your Username and Password</p>';
   } else {
-    $user_username = $_POST['user_username'];
-    $user_password = $_POST['user_password'];
-  
-    $sql = "SELECT * FROM users WHERE user_username = :user_username LIMIT 1";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':user_username' => $user_username]);
-  
-    $rows = $stmt->rowCount();
-  
-    if($rows > 0) {
-      $row = $stmt->fetch();
-  
-      if(password_verify($user_password, $row['user_password'])) {
-        $_SESSION['user_name'] = $row['user_name'];
-        $_SESSION['user_username'] = $row['user_username'];
-        $_SESSION['logged_in'] = true;
-  
-        header('Location: home.php');
-      } else {
-        $message = '<p class="message error">Password Incorrect</p>';
-      }
+    $user = new User($pdo);
+
+    if($user->logIn() && password_verify($_POST['user_password'], $user->user_password)) {
+      $_SESSION['user_name'] = $user->user_name;
+      $_SESSION['user_username'] = $user->user_username;
+      $_SESSION['logged_in'] = true;
+
+      header('Location: home.php');
     } else {
-      $message = '<p class="message error">Username Incorrect</p>';
+      $message = '<p class="message error">Incorrect Username or Password</p>';
     }
   }
 }

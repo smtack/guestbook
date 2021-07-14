@@ -5,11 +5,9 @@ if(!$_SESSION) {
   header('Location: index.php');
 }
 
-$sql = "SELECT * FROM posts WHERE post_id = :post_id";
-$stmt = $pdo->prepare($sql);
-$stmt->execute(['post_id' => $_GET['id']]);
+$post = new Post($pdo);
 
-$post_data = $stmt->fetch();
+$post_data = $post->getPost();
 
 if($post_data['post_name'] !== $_SESSION['user_name']) {
   header('Location: home.php');
@@ -19,25 +17,16 @@ if(isset($_POST['edit_post'])) {
   if(empty($_POST['post_content'])) {
     $message = '<p class="message error">Enter some text</p>';
   } else {
-    $post_content = htmlentities($_POST['post_content']);
-
-    $sql = "UPDATE posts SET post_content = :post_content WHERE post_id = :post_id";
-  
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-      ':post_id' => $_GET['id'],
-      ':post_content' => $post_content
-    ]);
-  
-    header('Location: home.php');
+    if($post->editPost()) {
+      header('Location: home.php');
+    } else {
+      $message = '<p class="message error">Unable to edit post</p>';
+    }
   }
 }
 
 if(isset($_POST['delete_post'])) {
-  $sql = "DELETE FROM posts WHERE post_id = :post_id";
-  $stmt = $pdo->prepare($sql);
-
-  if($stmt->execute([':post_id' => $_GET['id']])) {
+  if($post->deletePost()) {
     header('Location: home.php');
   } else {
     $delete_message = '<p class="message error">Unable to delete post</p>';

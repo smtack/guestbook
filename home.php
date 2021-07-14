@@ -5,23 +5,23 @@ if(!$_SESSION) {
   header('Location: index.php');
 }
 
+$user = new User($pdo);
+$post = new Post($pdo);
+
 if(isset($_POST['submit'])) {
   if(empty($_POST['post_content'])) {
     $message = '<p class="message error">Enter some text</p>';
   } else {
-    $sql = "INSERT INTO posts (post_name, post_content) VALUES (:post_name, :post_content)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-      ':post_name' => $_SESSION['user_name'],
-      ':post_content' => htmlentities($_POST['post_content'])
-    ]);
+    if($post->createPost()) {
+      header('Location: home.php');
+    } else {
+      $message = '<p class="message error">Unable to create post</p>';
+    }
   }
 }
 
-$sql = "SELECT * FROM posts ORDER BY post_date DESC";
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
-$posts = $stmt->fetchAll();
+$user_info = $user->getUser();
+$posts = $post->getPosts();
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +44,7 @@ $posts = $stmt->fetchAll();
   </div>
   <div class="container">
     <div class="submit">
-      <h3><?php echo $_SESSION['user_name']; ?></h3>
+      <h3><?php echo $user_info['user_name'] ?></h3>
 
       <h3>Make a post</h3>
 
