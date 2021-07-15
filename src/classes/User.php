@@ -134,4 +134,18 @@ class User {
       return false;
     }
   }
+
+  public function getProfile() {
+    $sql = "SELECT * FROM users WHERE user_id = :user_id";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    if($stmt->execute([':user_id' => $_GET['id']])) {
+      $row = $stmt->fetch();
+
+      return $row;
+    } else {
+      return false;
+    }
+  }
 }

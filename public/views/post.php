@@ -1,0 +1,51 @@
+<?php require_once VIEW_ROOT . '/includes/header.php'; ?>
+
+<div class="form">
+  <div class="post">
+    <p><?php echo $post_data['post_content']; ?></p>
+    <span>By <a href="profile?id=<?php echo $post_data['post_by']; ?>"><?php echo $post_data['user_name']; ?></a>on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
+    
+    <p>
+      <?php if($_SESSION): ?>
+        <?php if($_SESSION['user_name'] === $post_data['user_name']): ?>
+          <a href="edit-post?id=<?php echo $post_data['post_id']; ?>">Edit</a>
+        <?php endif; ?>
+      <?php endif; ?>
+    </p>
+  </div>
+  
+  <div class="comments">
+    <h2>Comments</h2>
+    
+    <?php if($_SESSION): ?>
+      <div class="form">
+        <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
+          <?php if(isset($message)): ?>
+            <div class="form-group">
+              <?php echo $message; ?>
+            </div>
+          <?php endif; ?>
+          <div class="form-group">
+            <textarea name="comment_text"></textarea>
+          </div>
+          <div class="form-group">
+            <input type="submit" name="post_comment" value="Comment">
+          </div>
+        </form>
+      </div>
+    <?php endif; ?>
+
+    <?php if(!$comments): ?>
+      <h2>No Comments</h2>
+    <?php else: ?>
+      <?php foreach($comments as $comment): ?>
+        <div class="comment">
+          <p><?php echo $comment['comment_text']; ?></p>
+          <span>By <a href="profile?id=<?php echo $comment['comment_by']; ?>"><?php echo $comment['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+</div>
+
+<?php require_once VIEW_ROOT . '/includes/footer.php'; ?>

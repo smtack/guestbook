@@ -42,6 +42,26 @@ a {
   color: #ffffff;
 }
 
+.search {
+  position: absolute;
+  top: 7px;
+  right: 300px;
+}
+
+.search input {
+  height: 35px;
+  width: 250px;
+  background-color: #ffffff;
+  color: #818181;
+  border: 1px solid #446cb3;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.search input:focus {
+  outline: none;
+}
+
 .container {
   width: 80%;
   margin: 0 auto;
@@ -86,6 +106,7 @@ a {
 .message {
   height: 45px;
   padding: 12.5px;
+  margin: 0px !important;
   border-radius: 5px;
 }
 
@@ -116,6 +137,12 @@ a {
 .submit h6 {
   margin: -10px 0 0 5%;
   font-weight: 100;
+  font-size: 14px;
+}
+
+.submit p {
+  margin: 10px 0 25px 25px;
+  color: #818181;
 }
 
 .submit form {
@@ -171,6 +198,12 @@ a {
   float: right;
 }
 
+.posts h2 {
+  text-align: center;
+  padding: 25px;
+  font-weight: 100;
+}
+
 .post {
   padding: 25px;
   border-bottom: 1px solid #d3d3d3;
@@ -190,6 +223,25 @@ a {
   margin-right: 10px;
 }
 
+.comments form {
+  width: 75%;
+}
+
+.comments form textarea {
+  height: 150px;
+}
+
+.comment {
+  padding: 25px;
+  border-bottom: 1px solid #d3d3d3;
+}
+
+.comment span {
+  color: #818181;
+  display: block;
+  margin: 25px 0 0 0;
+}
+
 .footer {
   clear: both;
   border-top: 1px solid #d3d3d3;
@@ -206,6 +258,17 @@ a {
   .header h1 {
     text-align: left;
     margin-left: 2.5%;
+  }
+
+  .search {
+    width: 100%;
+    top: 75px;
+    right: 0;
+    text-align: center;
+  }
+  
+  .search input {
+    width: 90%;
   }
 
   .container {

@@ -10,13 +10,13 @@ class Post {
   }
 
   public function createPost() {
-    $sql = "INSERT INTO posts (post_name, post_content) VALUES (:post_name, :post_content)";
+    $sql = "INSERT INTO posts (post_content, post_by) VALUES (:post_content, :post_by)";
 
     $stmt = $this->pdo->prepare($sql);
 
     if($stmt->execute([
-      ':post_name' => $_SESSION['user_name'],
-      ':post_content' => htmlentities($_POST['post_content'])
+      ':post_content' => htmlentities($_POST['post_content']),
+      ':post_by' => $this->post_by
     ])) {
       return true;
     } else {
@@ -25,7 +25,7 @@ class Post {
   }
 
   public function getPosts() {
-    $sql = "SELECT * FROM posts ORDER BY post_date DESC";
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id ORDER BY post_date DESC";
 
     $stmt = $this->pdo->prepare($sql);
     
@@ -37,7 +37,7 @@ class Post {
   }
 
   public function getPost() {
-    $sql = "SELECT * FROM posts WHERE post_id = :post_id";
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_id = :post_id";
 
     $stmt = $this->pdo->prepare($sql);
 
@@ -72,6 +72,39 @@ class Post {
 
     if($stmt->execute([':post_id' => $_GET['id']])) {
       return true;
+    } else {
+      return false;
+    }
+  }
+
+  public function getUsersPosts() {
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_by = :post_by ORDER BY post_date DESC";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    if($stmt->execute([':post_by' => $_GET['id']])) {
+      $rows = $stmt->fetchAll();
+
+      return $rows;
+    } else {
+      return false;
+    }
+  }
+
+  public function searchPosts($keywords) {
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_content LIKE ? ORDER BY post_date DESC";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    $keywords = htmlentities($keywords);
+    $keywords = "%{$keywords}%";
+
+    $stmt->bindParam(1, $keywords);
+
+    if($stmt->execute()) {
+      $rows = $stmt->fetchAll();
+
+      return $rows;
     } else {
       return false;
     }

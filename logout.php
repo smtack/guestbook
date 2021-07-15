@@ -5,4 +5,4 @@ $user = new User($pdo);
 
 $user->logOut();
 
-header('Location: index.php');
+header('Location: ' . BASE_URL);

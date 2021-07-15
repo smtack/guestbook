@@ -1,10 +1,10 @@
 <?php
 class Database {
-  private $dbhost = '127.0.0.1';
-  private $dbname = 'guestbook';
-  private $dbuser = '';
-  private $dbpass = '';
-  private $dbchar = 'utf8mb4';
+  private $dbhost = DB_HOST;
+  private $dbname = DB_NAME;
+  private $dbuser = DB_USER;
+  private $dbpass = DB_PASS;
+  private $dbchar = DB_CHAR;
 
   public $dsn;
   public $opt;
