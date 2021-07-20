@@ -24,6 +24,23 @@
   </form>
 </div>
 <div class="form">
+  <h2>Profile Picture</h2>
+
+  <form enctype="multipart/form-data" action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
+    <?php if(isset($picture_message)): ?>
+      <div class="form-group">
+        <?php echo $picture_message; ?>
+      </div>
+    <?php endif; ?>
+    <div class="form-group">
+      <input type="file" name="user_profile_picture" value="Profile Picture">
+    </div>
+    <div class="form-group">
+      <input type="submit" name="upload_profile_picture" value="Upload Profile Picture">
+    </div>
+  </form>
+</div>
+<div class="form">
   <h2>Change Password</h2>
 
   <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">

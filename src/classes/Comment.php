@@ -23,7 +23,7 @@ class Comment {
   }
 
   public function getComments() {
-    $sql = "SELECT * FROM comments LEFT JOIN users on comments.comment_by = users.user_id WHERE comment_post = :comment_post ORDER BY comment_date DESC";
+    $sql = "SELECT * FROM comments LEFT JOIN users ON comments.comment_by = users.user_id WHERE comment_post = :comment_post ORDER BY comment_date DESC";
 
     $stmt = $this->pdo->prepare($sql);
 

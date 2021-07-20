@@ -1,7 +1,10 @@
 <?php
 require_once 'src/init.php';
 
+$user = new User($pdo);
 $post = new Post($pdo);
+
+$user_info = $user->getUser();
 
 $keywords = isset($_GET['s']) ? $_GET['s'] : '';
 

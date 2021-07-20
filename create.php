@@ -9,15 +9,10 @@ $user = new User($pdo);
 $post = new Post($pdo);
 
 $user_info = $user->getUser();
-$post_data = $post->getPost();
 
-$page_title = 'Edit Post';
+$post->post_by = $user_info['user_id'];
 
-if($post_data['user_name'] !== $_SESSION['user_name']) {
-  header('Location: ' . BASE_URL . '/home');
-}
-
-if(isset($_POST['edit_post'])) {
+if(isset($_POST['submit'])) {
   if(empty($_POST['post_title']) || empty($_POST['post_content'])) {
     $message = '<p class="message error">Enter a title and some text</p>';
   } else {
@@ -31,11 +26,11 @@ if(isset($_POST['edit_post'])) {
       if(in_array($file_type, $allow_types)) {
         if(move_uploaded_file($_FILES['post_image']['tmp_name'], $path)) {
           $post->post_image = $file_name;
-
-          if($post->editPost()) {
+    
+          if($post->createPost()) {
             header('Location: ' . BASE_URL . '/home');
           } else {
-            $message = '<p class="message error">Unable to edit post</p>';
+            $message = '<p class="message error">Unable to create post</p>';
           }
         } else {
           $message = '<p class="message error">Unable to upload image</p>';
@@ -44,29 +39,13 @@ if(isset($_POST['edit_post'])) {
         $message = '<p class="message error">This file type is not supported</p>';
       }
     } else {
-      if($post->editPost()) {
+      if($post->createPost()) {
         header('Location: ' . BASE_URL . '/home');
       } else {
-        $message = '<p class="message error">Unable to edit post</p>';
+        $message = '<p class="message error">Unable to create post</p>';
       }
     }
   }
 }
 
-if(isset($_POST['delete_post'])) {
-  $dir = "uploads/post-images/";
-  $image = $post_data['post_image'];
-  $file_name = $dir . $image;
-
-  if($post->deletePost()) {
-    if(file_exists($file_name)) {
-      unlink($file_name);
-    }
-
-    header('Location: ' . BASE_URL . '/home');
-  } else {
-    $delete_message = '<p class="message error">Unable to delete post</p>';
-  }
-}
-
-require VIEW_ROOT . '/edit-post.php';
+require VIEW_ROOT . '/create.php';

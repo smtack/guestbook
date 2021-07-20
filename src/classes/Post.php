@@ -2,20 +2,19 @@
 class Post {
   private $pdo;
 
-  public $post_name;
-  public $post_title;
-
   public function __construct($pdo) {
     $this->pdo = $pdo;
   }
 
   public function createPost() {
-    $sql = "INSERT INTO posts (post_content, post_by) VALUES (:post_content, :post_by)";
+    $sql = "INSERT INTO posts (post_title, post_content, post_image, post_by) VALUES (:post_title, :post_content, :post_image, :post_by)";
 
     $stmt = $this->pdo->prepare($sql);
 
     if($stmt->execute([
+      ':post_title' => htmlentities($_POST['post_title']),
       ':post_content' => htmlentities($_POST['post_content']),
+      ':post_image' => $this->post_image,
       ':post_by' => $this->post_by
     ])) {
       return true;
@@ -36,6 +35,20 @@ class Post {
     }
   }
 
+  public function getUsersPosts($id) {
+    $sql = "SELECT * FROM posts LEFT JOIN users ON users.user_id = posts.post_by WHERE post_by = :user_id ORDER BY post_date DESC";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    if($stmt->execute([':user_id' => $id])) {
+      $rows = $stmt->fetchAll();
+
+      return $rows;
+    } else {
+      return false;
+    }
+  }
+
   public function getPost() {
     $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_id = :post_id";
 
@@ -51,12 +64,14 @@ class Post {
   }
 
   public function editPost() {
-    $sql = "UPDATE posts SET post_content = :post_content WHERE post_id = :post_id";
+    $sql = "UPDATE posts SET post_title = :post_title, post_image = :post_image, post_content = :post_content WHERE post_id = :post_id";
   
     $stmt = $this->pdo->prepare($sql);
 
     if($stmt->execute([
       ':post_id' => $_GET['id'],
+      ':post_title' => htmlentities($_POST['post_title']),
+      ':post_image' => $this->post_image,
       ':post_content' => htmlentities($_POST['post_content'])
     ])) {
       return true;
@@ -72,20 +87,6 @@ class Post {
 
     if($stmt->execute([':post_id' => $_GET['id']])) {
       return true;
-    } else {
-      return false;
-    }
-  }
-
-  public function getUsersPosts() {
-    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_by = :post_by ORDER BY post_date DESC";
-
-    $stmt = $this->pdo->prepare($sql);
-
-    if($stmt->execute([':post_by' => $_GET['id']])) {
-      $rows = $stmt->fetchAll();
-
-      return $rows;
     } else {
       return false;
     }

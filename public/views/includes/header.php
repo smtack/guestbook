@@ -13,17 +13,24 @@
     <h1><a href="<?php echo BASE_URL; ?>">Guestbook</a></h1>
 
     <?php if(isset($_SESSION['logged_in'])): ?>
+      <ul>
+        <li><img class="search-button" src="<?php echo BASE_URL; ?>/public/img/Search.svg" alt="Toggle Search"></li>
+        <li><img class="menu-button" src="<?php echo BASE_URL; ?>/public/img/Menu.svg" alt="Toggle Menu">
+      </ul>
+
       <div class="search">
         <form action="<?php echo BASE_URL; ?>/search" method="GET">
-          <input type="text" name="s" placeholder="<?php echo isset($_GET['s']) ? $_GET['s'] : 'Search'; ?>">
+          <input type="text" name="s" placeholder="<?php echo isset($_GET['s']) ? $_GET['s'] : 'Search Posts'; ?>">
         </form>
       </div>
 
-      <ul>
-        <li><a class="search-button" href="#">Search</a></li>
-        <li><a href="<?php echo BASE_URL; ?>/update-profile">Update Profile</a></li>
-        <li><a href="<?php echo BASE_URL; ?>/logout">Log Out</a></li>
-      </ul>
+      <div class="menu">
+        <ul>
+          <a href="<?php echo BASE_URL; ?>/profile?id=<?php echo $user_info['user_id']; ?>"><li>Your Profile</li></a>
+          <a href="<?php echo BASE_URL; ?>/update-profile"><li>Update Profile</li></a>
+          <a href="<?php echo BASE_URL; ?>/logout"><li>Log Out</li></a>
+        </ul>
+      </div>
     <?php endif; ?>
   </div>
   <div class="container">

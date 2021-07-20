@@ -101,6 +101,21 @@ class User {
     }
   }
 
+  public function uploadProfilePicture() {
+    $sql = "UPDATE users SET user_profile_picture = :user_profile_picture WHERE user_id = :user_id";
+
+    $stmt = $this->pdo->prepare($sql);
+
+    if($stmt->execute([
+      ':user_id' => $this->user_id,
+      ':user_profile_picture' => $this->user_profile_picture
+    ])) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public function changePassword() {
     $sql = "UPDATE users SET user_password = :user_password WHERE user_id = :user_id";
 
@@ -136,7 +151,7 @@ class User {
   }
 
   public function getProfile() {
-    $sql = "SELECT * FROM users WHERE user_id = :user_id";
+    $sql = "SELECT * FROM users LEFT JOIN follows ON follows.followee_id = users.user_id WHERE users.user_id = :user_id";
 
     $stmt = $this->pdo->prepare($sql);
 

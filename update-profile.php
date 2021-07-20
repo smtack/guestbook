@@ -28,6 +28,34 @@ if(isset($_POST['update'])) {
   }
 }
 
+if(isset($_POST['upload_profile_picture'])) {
+  if(!empty($_FILES['user_profile_picture']['name'])) {
+    $target_dir = "uploads/profile-pictures/";
+    $file_name = basename($_FILES['user_profile_picture']['name']);
+    $path = $target_dir . $file_name;
+    $file_type = pathinfo($path, PATHINFO_EXTENSION);
+    $allow_types = array('jpg', 'png');
+
+    if(in_array($file_type, $allow_types)) {
+      if(move_uploaded_file($_FILES['user_profile_picture']['tmp_name'], $path)) {
+        $user->user_profile_picture = $file_name;
+
+        if($user->uploadProfilePicture()) {
+          $picture_message = '<p class="message notice">Profile picture successfully uploaded</p>';
+        } else {
+          $picture_message = '<p class="message error">Unable to upload profile picture</p>';
+        }
+      } else {
+        $picture_message = '<p class="message error">Unable to upload profile picture</p>';
+      }
+    } else {
+      $picture_message = '<p class="message error">This file type is not supported</p>';
+    }
+  } else {
+    $picture_message = '<p class="message error">Select an image to upload</p>';
+  }
+}
+
 if(isset($_POST['change_password'])) {
   if(empty($_POST['current_password']) || empty($_POST['new_password']) || empty($_POST['confirm_password'])) {
     $password_message = '<p class="message error">Fill in all fields</p>';

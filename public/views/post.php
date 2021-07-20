@@ -2,16 +2,27 @@
 
 <div class="form">
   <div class="post">
+    <h2><?php echo $post_data['post_title']; ?></h2>
+
+    <?php if($post_data['post_image']): ?>
+      <img src="<?php echo BASE_URL; ?>/uploads/post-images/<?php echo $post_data['post_image']; ?>" alt="<?php echo $post_data['post_image']; ?>">
+    <?php endif; ?>
+
     <p><?php echo $post_data['post_content']; ?></p>
-    <span>By <a href="profile?id=<?php echo $post_data['post_by']; ?>"><?php echo $post_data['user_name']; ?></a>on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
+
+    <?php if($post_data['user_name']): ?>
+      <span>By <a href="profile?id=<?php echo $post_data['post_by']; ?>"><?php echo $post_data['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
+    <?php else: ?>
+      <span>By [Deleted] on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
+    <?php endif; ?>
     
-    <p>
+    <span>
       <?php if($_SESSION): ?>
         <?php if($_SESSION['user_name'] === $post_data['user_name']): ?>
           <a href="edit-post?id=<?php echo $post_data['post_id']; ?>">Edit</a>
         <?php endif; ?>
       <?php endif; ?>
-    </p>
+    </span>
   </div>
   
   <div class="comments">
@@ -41,7 +52,12 @@
       <?php foreach($comments as $comment): ?>
         <div class="comment">
           <p><?php echo $comment['comment_text']; ?></p>
-          <span>By <a href="profile?id=<?php echo $comment['comment_by']; ?>"><?php echo $comment['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
+
+          <?php if($comment['user_name']): ?>
+            <span>By <a href="profile?id=<?php echo $comment['comment_by']; ?>"><?php echo $comment['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
+          <?php else: ?>
+            <span>By [Deleted] on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
+          <?php endif; ?>
         </div>
       <?php endforeach; ?>
     <?php endif; ?>

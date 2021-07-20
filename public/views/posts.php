@@ -6,19 +6,16 @@
   <?php endif; ?>
   
   <h3><?php echo $user_info['user_name'] ?></h3>
-  
+
   <form action="<?php echo BASE_URL; ?>/create" method="POST">
     <div class="form-group">
       <input type="submit" value="Make a Post">
     </div>
   </form>
-  <form action="<?php echo BASE_URL; ?>/posts" method="POST">
-    <div class="form-group">
-      <input type="submit" value="View All Posts">
-    </div>
-  </form>
 </div>
 <div class="posts">
+  <h2>All Posts</h2>
+  
   <?php if(!$posts): ?>
     <h2>No Posts</h2>
   <?php endif; ?>
