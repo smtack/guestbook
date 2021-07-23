@@ -1,12 +1,10 @@
-<?php require_once VIEW_ROOT . '/includes/header.php'; ?>
-
 <div class="form">
   <h2>Edit Post</h2>
 
-  <form enctype="multipart/form-data" action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($message)): ?>
+  <form enctype="multipart/form-data" action="/edit-post/<?php echo $post_data['post_id']; ?>" method="POST">
+    <?php if(isset($_SESSION['edit_message'])): ?>
       <div class="form-group">
-        <?php echo $message; ?>
+        <?php echo $_SESSION['edit_message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -30,10 +28,10 @@
 <div class="form">
   <h2>Delete Post</h2>
 
-  <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($delete_message)): ?>
+  <form action="/delete-post/<?php echo $post_data['post_id']; ?>" method="POST">
+    <?php if(isset($_SESSION['delete_message'])): ?>
       <div class="form-group">
-        <?php echo $delete_message; ?>
+        <?php echo $_SESSION['delete_message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -41,5 +39,3 @@
     </div>
   </form>
 </div>
-
-<?php require_once VIEW_ROOT . '/includes/footer.php'; ?>

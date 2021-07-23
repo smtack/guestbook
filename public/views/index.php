@@ -1,12 +1,10 @@
-<?php require_once VIEW_ROOT . '/includes/header.php'; ?>
-
 <div class="form">
   <h2>Sign Up</h2>
 
-  <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($message)): ?>
+  <form action="/signup" method="POST">
+    <?php if(isset($_SESSION['message'])): ?>
       <div class="form-group">
-        <?php echo $message; ?>
+        <?php echo $_SESSION['message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -28,9 +26,7 @@
       <input type="submit" name="signup" value="Sign Up">
     </div>
     <div class="form-group">
-      <p>Already have an account? <a href="<?php echo BASE_URL; ?>/login">Log In</a></p>
+      <p>Already have an account? <a href="/login">Log In</a></p>
     </div>
   </form>
 </div>
-
-<?php require_once VIEW_ROOT . '/includes/footer.php'; ?>

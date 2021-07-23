@@ -1,5 +1,3 @@
-<?php require_once VIEW_ROOT . '/includes/header.php'; ?>
-
 <div class="form">
   <div class="post">
     <h2><?php echo $post_data['post_title']; ?></h2>
@@ -11,15 +9,15 @@
     <p><?php echo $post_data['post_content']; ?></p>
 
     <?php if($post_data['user_name']): ?>
-      <span>By <a href="profile?id=<?php echo $post_data['post_by']; ?>"><?php echo $post_data['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
+      <span>By <a href="/profile/<?php echo $post_data['user_username']; ?>"><?php echo $post_data['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
     <?php else: ?>
       <span>By [Deleted] on <?php echo date('l j F Y \a\t H:i', strtotime($post_data['post_date'])); ?></span>
     <?php endif; ?>
     
     <span>
       <?php if($_SESSION): ?>
-        <?php if($_SESSION['user_name'] === $post_data['user_name']): ?>
-          <a href="edit-post?id=<?php echo $post_data['post_id']; ?>">Edit</a>
+        <?php if($_SESSION['user_username'] === $post_data['user_username']): ?>
+          <a href="/edit/<?php echo $post_data['post_id']; ?>">Edit</a>
         <?php endif; ?>
       <?php endif; ?>
     </span>
@@ -30,10 +28,10 @@
     
     <?php if($_SESSION): ?>
       <div class="form">
-        <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-          <?php if(isset($message)): ?>
+        <form action="/comment/<?php echo $post_data['post_id']; ?>" method="POST">
+          <?php if(isset($_SESSION['comment_message'])): ?>
             <div class="form-group">
-              <?php echo $message; ?>
+              <?php echo $_SESSION['comment_message']; ?>
             </div>
           <?php endif; ?>
           <div class="form-group">
@@ -54,7 +52,7 @@
           <p><?php echo $comment['comment_text']; ?></p>
 
           <?php if($comment['user_name']): ?>
-            <span>By <a href="profile?id=<?php echo $comment['comment_by']; ?>"><?php echo $comment['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
+            <span>By <a href="/profile/<?php echo $comment['user_username']; ?>"><?php echo $comment['user_name']; ?></a> on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
           <?php else: ?>
             <span>By [Deleted] on <?php echo date('l j F Y \a\t H:i', strtotime($comment['comment_date'])); ?></span>
           <?php endif; ?>
@@ -63,5 +61,3 @@
     <?php endif; ?>
   </div>
 </div>
-
-<?php require_once VIEW_ROOT . '/includes/footer.php'; ?>

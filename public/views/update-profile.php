@@ -1,12 +1,10 @@
-<?php require_once VIEW_ROOT . '/includes/header.php'; ?>
-
 <div class="form">
   <h2>Update Profile</h2>
 
-  <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($message)): ?>
+  <form action="/update-info" method="POST">
+    <?php if(isset($_SESSION['update_message'])): ?>
       <div class="form-group">
-        <?php echo $message; ?>
+        <?php echo $_SESSION['update_message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -26,10 +24,10 @@
 <div class="form">
   <h2>Profile Picture</h2>
 
-  <form enctype="multipart/form-data" action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($picture_message)): ?>
+  <form enctype="multipart/form-data" action="/upload-profile-picture" method="POST">
+    <?php if(isset($_SESSION['picture_message'])): ?>
       <div class="form-group">
-        <?php echo $picture_message; ?>
+        <?php echo $_SESSION['picture_message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -43,10 +41,10 @@
 <div class="form">
   <h2>Change Password</h2>
 
-  <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($password_message)): ?>
+  <form action="/change-password" method="POST">
+    <?php if(isset($_SESSION['password_message'])): ?>
       <div class="form-group">
-        <?php echo $password_message; ?>
+        <?php echo $_SESSION['password_message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -66,10 +64,10 @@
 <div class="form">
   <h2>Delete Profile</h2>
 
-  <form action="<?php $_SERVER['PHP_SELF']; ?>" method="POST">
-    <?php if(isset($delete_message)): ?>
+  <form action="/delete-profile" method="POST">
+    <?php if(isset($_SESSION['delete_message'])): ?>
       <div class="form-group">
-        <?php echo $delete_message; ?>
+        <?php echo $_SESSION['delete_message']; ?>
       </div>
     <?php endif; ?>
     <div class="form-group">
@@ -77,5 +75,3 @@
     </div>
   </form>
 </div>
-
-<?php require_once VIEW_ROOT . '/includes/footer.php'; ?>

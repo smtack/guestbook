@@ -45,4 +45,4 @@ menuButton.addEventListener('click', () => {
   } else {
     menu.style.display = "none";
   }
-})
+});
