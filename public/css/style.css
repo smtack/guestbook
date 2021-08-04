@@ -27,43 +27,20 @@ a {
   color: #ffffff;
 }
 
-.header ul {
+.menu-button {
   position: absolute;
   top: 15px;
-  right: 15px;
+  right: 10%;
 }
 
-.header ul li {
-  margin: 0 10px;
-  display: inline-block;
-}
-
-.search-button:hover,
 .menu-button:hover {
   cursor: pointer;
-}
-
-.search {
-  width: 80%;
-  margin: 25px auto;
-}
-
-.search input {
-  height: 35px;
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid #446cb3 !important;
-  padding: 10px 0;
-}
-
-.search input:focus {
-  outline: none;
 }
 
 .menu {
   position: absolute;
   top: 75px;
-  right: 25px;
+  right: 10%;
   min-width: 250px;
   min-height: 100px;
   z-index: 1;
@@ -73,17 +50,12 @@ a {
 }
 
 .menu ul {
-  position: relative;
-  top: 0;
-  left: -10px;
-  width: 100%;
   text-align: center;
+  list-style: none;
 }
 
 .menu ul li {
-  width: 100%;
-  padding: 15px 0;
-  display: block;
+  padding: 15px;
 }
 
 .menu ul li:hover {
@@ -110,6 +82,7 @@ a {
 
 .form img {
   width: 100%;
+  margin: 25px 0;
 }
 
 .form form {
@@ -129,6 +102,15 @@ a {
   padding: 10px;
 }
 
+.form .form-group textarea {
+  width: 100%;
+  height: 250px;
+  border: 1px solid #d3d3d3;
+  border-radius: 5px;
+  resize: none;
+  padding: 10px;
+}
+
 .form .form-group input:focus,
 .form .form-group textarea:focus {
   outline: none;
@@ -136,9 +118,8 @@ a {
 }
 
 .message {
-  height: 45px;
-  padding: 12.5px;
-  margin: 0px !important;
+  height: 40px;
+  padding: 10px;
   border-radius: 5px;
 }
 
@@ -154,7 +135,7 @@ a {
   border: 1px solid #721c24;
 }
 
-.submit {
+.sidebar {
   width: 35%;
   min-height: 100px;
   border: 1px solid #d3d3d3;
@@ -163,29 +144,29 @@ a {
   float: left;
 }
 
-.submit img {
+.sidebar img {
   width: 75px;
   margin: 15px 0 15px 25px;
   border-radius: 50%;
 }
 
-.submit h3 {
+.sidebar h3 {
   margin: 15px 0 15px 25px;
   font-weight: 100;
 }
 
-.submit h6 {
+.sidebar h6 {
   margin: 15px 0 15px 25px;
   font-weight: 100;
   font-size: 14px;
 }
 
-.submit p {
+.sidebar p {
   margin: 15px 0 15px 25px;
   color: #818181;
 }
 
-.submit button {
+.sidebar button {
   width: 100px;
   height: 40px;
   margin: 10px 0 25px 25px;
@@ -195,37 +176,28 @@ a {
   border-radius: 5px;
 }
 
-.submit button:hover {
+.sidebar button:hover {
   cursor: pointer;
   background-color: #ffffff;
   color: #446cb3;
 }
 
-.submit form {
+.sidebar form {
   width: 90%;
   margin: 0 auto;
 }
 
-.submit .form-group {
+.sidebar .form-group {
   margin: 5% 0;
 }
 
-.form-group textarea {
-  width: 100%;
-  height: 250px;
-  border: 1px solid #d3d3d3;
-  border-radius: 5px;
-  resize: none;
-  padding: 10px;
-}
-
-.submit .form-group input:focus,
-.submit .form-group textarea:focus {
+.sidebar .form-group input:focus,
+.sidebar .form-group textarea:focus {
   outline: none;
   border-color:#446cb3;
 }
 
-.submit .form-group input {
+.sidebar .form-group input {
   width: 100%;
   height: 40px;
   border: 1px solid #d3d3d3;
@@ -274,6 +246,8 @@ a {
   text-align: left;
   color: #000000;
   font-weight: bold;
+  padding: 0px;
+  margin-bottom: 15px;
 }
 
 .post h3 {
@@ -281,8 +255,14 @@ a {
 }
 
 .post img {
-  width: 100%;
-  margin-bottom: 25px;
+  width: 75%;
+  margin: 25px auto;
+  display: block;
+}
+
+.post p {
+  word-wrap: break-word;
+  line-height: 1.5;
 }
 
 .post span {
@@ -296,7 +276,7 @@ a {
 }
 
 .comments form textarea {
-  height: 150px;
+  height: 150px !important;
 }
 
 .comment {
@@ -304,10 +284,24 @@ a {
   border-bottom: 1px solid #d3d3d3;
 }
 
+.comment:last-child {
+  border-bottom: 0;
+}
+
 .comment span {
   color: #818181;
   display: block;
   margin: 25px 0 0 0;
+}
+
+.err-page {
+  text-align: center;
+  padding: 50px;
+}
+
+.err-page h1 {
+  padding: 25px;
+  font-weight: 100;
 }
 
 .footer {
@@ -322,14 +316,22 @@ a {
   padding: 25px;
 }
 
+@media(max-width: 1000px) {
+  .container {
+    width: 90%;
+  }
+
+  .header img,
+  .menu {
+    right: 5%;
+  }
+}
+
 @media(max-width: 800px) {
   .header h1 {
     text-align: left;
-    margin-left: 2.5%;
-  }
-
-  .search {
-    width: 90%;
+    margin-left: 5%;
+    padding: 10px 0;
   }
 
   .container {
@@ -344,12 +346,7 @@ a {
     width: 100%;
   }
   
-  .submit {
-    width: 90%;
-    margin: 50px auto;
-    float: none;
-  }
-  
+  .sidebar,
   .posts {
     width: 90%;
     margin: 50px auto;

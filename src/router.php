@@ -16,6 +16,7 @@ class Router {
       "change-password" => "changePassword",
       "delete-profile" => "deleteUser",
       "profile" => "profile",
+      "search-users" => "searchUsers",
       "create" => "create",
       "new-post" => "newPost",
       "posts" => "posts",
@@ -24,7 +25,9 @@ class Router {
       "edit-post" => "editPost",
       "delete-post" => "deletePost",
       "comment" => "comment",
-      "search" => "search"
+      "search-posts" => "searchPosts",
+      "follow" => "follow",
+      "unfollow" => "unfollow"
     );
   }
 

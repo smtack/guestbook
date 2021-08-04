@@ -22,6 +22,8 @@ class Controller {
 
     if($endpoint === false) {
       header("HTTP/1.0 404 Not Found");
+
+      include("public/views/errors/404.php");
     } else {
       $this->$endpoint($queryParams);
     }
@@ -46,8 +48,8 @@ class Controller {
   }
 
   private function checkUser() {
-    if(isset($_SESSION['user_username'])) {
-      return $_SESSION['user_username'];
+    if(isset($_COOKIE['Auth'])) {
+      return $this->model->userForAuth($_COOKIE['Auth']);
     } else {
       return false;
     }
@@ -71,27 +73,38 @@ class Controller {
 
       $this->redirect('index');
     } else {
-      if($_POST['user_password'] !== $_POST['confirm_password']) {
-        $_SESSION['message'] = '<p class="message error">Passwords don\'t match</p>';
+      if(!filter_var($_POST['user_email'], FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['message'] = '<p class="message error">Enter a valid Email Address</p>';
 
         $this->redirect('index');
       } else {
-        $password_hash = password_hash($_POST['user_password'], PASSWORD_BCRYPT);
-
-        $signup_array = array(
-          'user_name' => htmlentities($_POST['user_name']),
-          'user_username' => htmlentities($_POST['user_username']),
-          'user_email' => htmlentities($_POST['user_email']),
-          'user_password' => $password_hash
-        );
-    
-        if($this->model->signupUser($signup_array)) {
-          $_SESSION['user_username'] = $signup_array['user_username'];
-          $_SESSION['logged_in'] = true;
-    
-          $this->redirect("home");
+        if($_POST['user_password'] !== $_POST['confirm_password']) {
+          $_SESSION['message'] = '<p class="message error">Passwords don\'t match</p>';
+  
+          $this->redirect('index');
         } else {
-          $this->redirect("index");
+          if($this->model->exists('users', array('user_username' => $_POST['user_username']))) {
+            $_SESSION['message'] = '<p class="message error">This username is already taken</p>';
+  
+            $this->redirect('index');
+          } else if($this->model->exists('users', array('user_email' => $_POST['user_email']))) {
+            $_SESSION['message'] = '<p class="message error">This email address is already in use</p>';
+  
+            $this->redirect('index');
+          } else {
+            $signup_array = array(
+              'user_name' => htmlentities($_POST['user_name']),
+              'user_username' => htmlentities($_POST['user_username']),
+              'user_email' => htmlentities($_POST['user_email']),
+              'user_password' => password_hash($_POST['user_password'], PASSWORD_BCRYPT)
+            );
+        
+            if($this->model->signupUser($signup_array)) {
+              $this->redirect("home");
+            } else {
+              $this->redirect("index");
+            }
+          }
         }
       }
     }
@@ -121,9 +134,6 @@ class Controller {
       );
   
       if($this->model->attemptLogin($login_array)) {
-        $_SESSION['user_username'] = $login_array['user_username'];
-        $_SESSION['logged_in'] = true;
-  
         $this->redirect("home");
       } else {
         $_SESSION['login_message'] = '<p class="message error">Username or Password Incorrect</p>';
@@ -139,15 +149,15 @@ class Controller {
     if($user === false) {
       $this->redirect("index");
     } else {
-      $user_info = $this->model->getUserInfo();
-      $posts = $this->model->getUsersPosts($user_info['user_id']);
+      $posts = $this->model->getHomePosts($user->user_id);
 
-      $this->loadPage($user, "home", array('user' => $user, 'user_info' => $user_info, 'posts' => $posts));
+      $this->loadPage($user, "home", array('user' => $user, 'posts' => $posts));
     }
   }
   
   private function logOut() {
-    $this->model->logoutUser();
+    $this->model->logoutUser($_COOKIE['Auth']);
+
     $this->redirect("index");
   }
 
@@ -159,9 +169,7 @@ class Controller {
     if($user === false) {
       $this->redirect("index");
     } else {
-      $user_info = $this->model->getUserInfo();
-
-      $this->loadPage($user, "update-profile", array('user' => $user, 'user_info' => $user_info), $page_title);
+      $this->loadPage($user, "update-profile", array('user' => $user), $page_title);
     }
   }
 
@@ -176,23 +184,36 @@ class Controller {
         
         $this->redirect('update-profile');
       } else {
-        $user_info = $this->model->getUserInfo();
-
-        $update_array = array(
-          'user_name' => htmlentities($_POST['user_name']),
-          'user_username' => htmlentities($_POST['user_username']),
-          'user_email' => htmlentities($_POST['user_email'])
-        );
-
-        if($this->model->updateInfo($update_array, $user_info['user_id'])) {
-          $_SESSION['user_username'] = $update_array['user_username'];
-          $_SESSION['update_message'] = '<p class="message notice">Profile successfully updated</p>';
-          
+        if(!filter_var($_POST['user_email'], FILTER_VALIDATE_EMAIL)) {
+          $_SESSION['update_message'] = '<p class="message error">Enter a valid Email Address</p>';
+        
           $this->redirect('update-profile');
         } else {
-          $_SESSION['update_message'] = '<p class="message error">Unable to update information</p>';
-
-          $this->redirect('update-profile');
+          if($this->model->exists('users', array('user_username' => $_POST['user_username'])) && $_POST['user_username'] !== $user->user_username) {
+            $_SESSION['update_message'] = '<p class="message error">This username is already taken</p>';
+          
+            $this->redirect('update-profile');
+          } else if($this->model->exists('users', array('user_email' => $_POST['user_email'])) && $_POST['user_email'] !== $user->user_email) {
+            $_SESSION['update_message'] = '<p class="message error">This email address is already in use</p>';
+          
+            $this->redirect('update-profile');
+          } else {
+            $update_array = array(
+              'user_name' => htmlentities($_POST['user_name']),
+              'user_username' => htmlentities($_POST['user_username']),
+              'user_email' => htmlentities($_POST['user_email'])
+            );
+    
+            if($this->model->updateInfo($update_array, $user->user_id)) {
+              $_SESSION['update_message'] = '<p class="message notice">Profile successfully updated</p>';
+              
+              $this->redirect('update-profile');
+            } else {
+              $_SESSION['update_message'] = '<p class="message error">Unable to update information</p>';
+    
+              $this->redirect('update-profile');
+            }
+          }
         }
       }
     }
@@ -209,8 +230,6 @@ class Controller {
 
         $this->redirect('update-profile');
       } else {
-        $user_info = $this->model->getUserInfo();
-
         $target_dir = "uploads/profile-pictures/";
         $file_name = basename($_FILES['user_profile_picture']['name']);
         $path = $target_dir . $file_name;
@@ -223,7 +242,7 @@ class Controller {
               'user_profile_picture' => $file_name
             );
   
-            if($this->model->uploadProfilePicture($profile_picture_array, $user_info['user_id'])) {
+            if($this->model->uploadProfilePicture($profile_picture_array, $user->user_id)) {
               $_SESSION['picture_message'] = '<p class="message notice">Profile picture uploaded</p>';
 
               $this->redirect('update-profile');
@@ -257,9 +276,7 @@ class Controller {
 
         $this->redirect('update-profile');
       } else {
-        $user_info = $this->model->getUserInfo();
-
-        if(!password_verify($_POST['current_password'], $user_info['user_password'])) {
+        if(!password_verify($_POST['current_password'], $user->user_password)) {
           $_SESSION['password_message'] = '<p class="message error">Enter your current password correctly</p>';
 
           $this->redirect('update-profile');
@@ -269,13 +286,9 @@ class Controller {
 
             $this->redirect('update-profile');
           } else {
-            $password_hash = password_hash($_POST['new_password'], PASSWORD_BCRYPT);
-
-            $password_array = array(
-              'user_password' => $password_hash
-            );
+            $password_array = array('user_password' => password_hash($_POST['new_password'], PASSWORD_BCRYPT));
       
-            if($this->model->updatePassword($password_array, $user_info['user_id'])) {
+            if($this->model->updatePassword($password_array, $user->user_id)) {
               $_SESSION['password_message'] = '<p class="message notice">Password successfully updated</p>';
 
               $this->redirect('update-profile');
@@ -296,9 +309,7 @@ class Controller {
     if($user === false) {
       $this->redirect("index");
     } else {
-      $user_info = $this->model->getUserInfo();
-
-      if($this->model->deleteProfile($user_info)) {
+      if($this->model->deleteProfile($user->user_id)) {
         $this->logOut();
       } else {
         $_SESSION['delete_message'] = '<p class="message error">Unable to delete profile</p>';
@@ -311,18 +322,72 @@ class Controller {
   private function profile() {
     $user = $this->checkUser();
 
-    if(isset($_GET['query'])) {
-      $profile = $_GET['query'];
+    if($user === false) {
+      $this->redirect('index');
+    } else {
+      if(isset($_GET['query'])) {
+        $profile = $_GET['query'];
+  
+        if($profile_info = $this->model->getProfile($profile)) {
+          $profile_data = $this->model->getProfileInfo($user, $profile_info['user_id']);
+          $posts = $this->model->getUsersPosts($profile_info['user_id']);
+          $page_title = $profile_info['user_name'] . "'s Profile";
+  
+          $this->loadPage($user, "profile", array("user" => $user, "profile_info" => $profile_info, "profile_data" => $profile_data, "posts" => $posts), $page_title);
+        } else {
+          $this->redirect('home');
+        }
+      }
+    }
+  }
 
-      if($profile_info = $this->model->getProfile($profile)) {
-        $posts = $this->model->getUsersPosts($profile_info['user_id']);
-        $page_title = $profile_info['user_name'] . "'s Profile";
+  private function searchUsers() {
+    $user = $this->checkUser();
 
-        $this->loadPage($user, "profile", array("user" => $user, "profile_info" => $profile_info, "posts" => $posts), $page_title);
+    if($user === false) {
+      $this->redirect('index');
+    } else {
+      if(isset($_POST['search-users'])) {
+        $user_keywords = $_POST['search-users'];
+      }
+
+      if(isset($user_keywords)) {
+        $results = $this->model->searchUsers($user_keywords);
+        $page_title = "Search Users: " . $user_keywords;
+  
+        $this->loadPage($user, "search-users", array("user" => $user, "user_keywords" => $user_keywords, "results" => $results), $page_title);
       } else {
         $this->redirect('home');
       }
-    }  
+    }
+  }
+
+  private function follow() {
+    $user = $this->checkUser();
+
+    if($user === false) {
+      $this->redirect('index');
+    } else {
+      if($this->model->follow($user, htmlentities($_GET['query']))) {
+        $this->redirect('home');
+      } else {
+        $this->redirect('home');
+      }
+    }
+  }
+
+  private function unfollow() {
+    $user = $this->checkUser();
+
+    if($user === false) {
+      $this->redirect('index');
+    } else {
+      if($this->model->unfollow($user, htmlentities($_GET['query']))) {
+        $this->redirect('home');
+      } else {
+        $this->redirect('home');
+      }
+    }
   }
 
   private function create() {
@@ -332,9 +397,7 @@ class Controller {
     if($user === false) {
       $this->redirect("index");
     } else {
-      $user_info = $this->model->getUserInfo();
-
-      $this->loadPage($user, "create", array('user' => $user, 'user_info' => $user_info), $page_title);
+      $this->loadPage($user, "create", array('user' => $user), $page_title);
     }
   }
 
@@ -344,8 +407,6 @@ class Controller {
     if($user === false) {
       $this->redirect("index");
     } else {
-      $user_info = $this->model->getUserInfo();
-
       if(empty($_POST['post_title']) || empty($_POST['post_content'])) {
         $_SESSION['post_message'] = '<p class="message error">Enter a title and some text</p>';
 
@@ -362,9 +423,10 @@ class Controller {
             if(move_uploaded_file($_FILES['post_image']['tmp_name'], $path)) {
               $post_array = array(
                 'post_title' => htmlentities($_POST['post_title']),
+                'post_slug' => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', htmlentities($_POST['post_title'])))) . '-' . rand(0, 100),
                 'post_image' => $file_name,
                 'post_content' => htmlentities($_POST['post_content']),
-                'post_by' => $user_info['user_id']
+                'post_by' => $user->user_id
               );
 
               if($this->model->newPost($post_array)) {
@@ -387,8 +449,9 @@ class Controller {
         } else {
           $post_array = array(
             'post_title' => htmlentities($_POST['post_title']),
+            'post_slug' => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', htmlentities($_POST['post_title'])))) . '-' . rand(0, 100),
             'post_content' => htmlentities($_POST['post_content']),
-            'post_by' => $user_info['user_id']
+            'post_by' => $user->user_id
           );
 
           if($this->model->newPost($post_array)) {
@@ -406,11 +469,9 @@ class Controller {
   private function posts() {
     $user = $this->checkUser();
     $page_title = "All Posts";
-
-    $user_info = $this->model->getUserInfo();
     $posts = $this->model->getPosts();
 
-    $this->loadPage($user, "posts", array('user' => $user, 'user_info' => $user_info, 'posts' => $posts), $page_title);
+    $this->loadPage($user, "posts", array('user' => $user, 'posts' => $posts), $page_title);
   }
 
   private function post() {
@@ -420,11 +481,10 @@ class Controller {
       $post = $_GET['query'];
 
       if($post_data = $this->model->getPost($post)) {
-        $user_info = $this->model->getUserInfo();
-        $comments = $this->model->getComments($post);
+        $comments = $this->model->getComments($post_data['post_id']);
         $page_title = $post_data['post_title'];
 
-        $this->loadPage($user, "post", array('user' => $user, 'user_info' => $user_info, 'post_data' => $post_data, 'comments' => $comments), $page_title);
+        $this->loadPage($user, "post", array('user' => $user, 'post_data' => $post_data, 'comments' => $comments), $page_title);
       } else {
         $this->redirect('home');
       }
@@ -441,13 +501,12 @@ class Controller {
         $post = $_GET['query'];
 
         if($post_data = $this->model->getPost($post)) {
-          $user_info = $this->model->getUserInfo();
           $page_title = "Edit Post: " . $post_data['post_title'];
 
-          if($user_info['user_id'] !== $post_data['user_id']) {
+          if($user->user_id !== $post_data['user_id']) {
             $this->redirect('home');
           } else {
-            $this->loadPage($user, "edit", array('user' => $user, 'user_info' => $user_info, 'post_data' => $post_data), $page_title);
+            $this->loadPage($user, "edit", array('user' => $user, 'post_data' => $post_data), $page_title);
           }
         } else {
           $this->redirect('home');
@@ -464,10 +523,9 @@ class Controller {
     } else {
       $post = $_GET['query'];
 
-      $user_info = $this->model->getUserInfo();
       $post_data = $this->model->getPost($post);
 
-      if($user_info['user_id'] !== $post_data['user_id']) {
+      if($user->user_id !== $post_data['user_id']) {
         $this->redirect('home');
       } else {
         if(empty($_POST['post_title']) || empty($_POST['post_content'])) {
@@ -486,6 +544,7 @@ class Controller {
               if(move_uploaded_file($_FILES['post_image']['tmp_name'], $path)) {
                 $update_array = array(
                   'post_title' => htmlentities($_POST['post_title']),
+                  'post_slug' => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', htmlentities($_POST['post_title'])))) . '-' . rand(0, 100),
                   'post_image' => $file_name,
                   'post_content' => htmlentities($_POST['post_content']),
                 );
@@ -510,6 +569,7 @@ class Controller {
           } else {
             $update_array = array(
               'post_title' => htmlentities($_POST['post_title']),
+              'post_slug' => strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', htmlentities($_POST['post_title'])))) . '-' . rand(0, 100),
               'post_content' => htmlentities($_POST['post_content']),
             );
   
@@ -535,9 +595,8 @@ class Controller {
       $post = $_GET['query'];
 
       $post_data = $this->model->getPost($post);
-      $user_info = $this->model->getUserInfo();
 
-      if($user_info['user_id'] !== $post_data['user_id']) {
+      if($user->user_id !== $post_data['user_id']) {
         $this->redirect('home');
       } else {
         $image_dir = "uploads/post-images/";
@@ -568,7 +627,6 @@ class Controller {
       $post = $_GET['query'];
 
       $post_data = $this->model->getPost($post);
-      $user_info = $this->model->getUserInfo();
 
       if(empty($_POST['comment_text'])) {
         $_SESSION['comment_message'] = '<p class="message error">Enter a comment</p>';
@@ -578,7 +636,7 @@ class Controller {
         $comment_array = array(
           'comment_text' => htmlentities($_POST['comment_text']),
           'comment_post' => $post_data['post_id'],
-          'comment_by' => $user_info['user_id']
+          'comment_by' => $user->user_id
         );
 
         if($this->model->newComment($comment_array)) {
@@ -592,20 +650,20 @@ class Controller {
     }
   }
 
-  private function search() {
+  private function searchPosts() {
     $user = $this->checkUser();
 
-    if($user === false) {
-      $this->redirect('index');
+    if(isset($_POST['search'])) {
+      $post_keywords = $_POST['search'];
+    }
+
+    if(isset($post_keywords)) {
+      $results = $this->model->searchPosts($post_keywords);
+      $page_title = "Search: " . $post_keywords;
+  
+      $this->loadPage($user, "search-posts", array("user" => $user, "post_keywords" => $post_keywords, "results" => $results), $page_title);
     } else {
-      if(isset($_POST['search'])) {
-        $keywords = $_POST['search'];
-      }
-
-      $results = $this->model->search($keywords);
-      $page_title = "Search: " . $keywords;
-
-      $this->loadPage($user, "search", array("results" => $results), $page_title);
+      $this->redirect('home');
     }
   }
 }

@@ -1,4 +1,6 @@
-<div class="form">
+<?php require VIEW_ROOT . '/includes/sidebar.php'; ?>
+
+<div class="posts">
   <div class="post">
     <h2><?php echo $post_data['post_title']; ?></h2>
 
@@ -15,9 +17,9 @@
     <?php endif; ?>
     
     <span>
-      <?php if($_SESSION): ?>
-        <?php if($_SESSION['user_username'] === $post_data['user_username']): ?>
-          <a href="/edit/<?php echo $post_data['post_id']; ?>">Edit</a>
+      <?php if($user): ?>
+        <?php if($user->user_username === $post_data['user_username']): ?>
+          <a href="/edit/<?php echo $post_data['post_slug']; ?>">Edit</a>
         <?php endif; ?>
       <?php endif; ?>
     </span>
@@ -26,9 +28,9 @@
   <div class="comments">
     <h2>Comments</h2>
     
-    <?php if($_SESSION): ?>
+    <?php if($user): ?>
       <div class="form">
-        <form action="/comment/<?php echo $post_data['post_id']; ?>" method="POST">
+        <form action="/comment/<?php echo $post_data['post_slug']; ?>" method="POST">
           <?php if(isset($_SESSION['comment_message'])): ?>
             <div class="form-group">
               <?php echo $_SESSION['comment_message']; ?>

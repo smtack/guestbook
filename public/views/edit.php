@@ -1,7 +1,7 @@
 <div class="form">
   <h2>Edit Post</h2>
 
-  <form enctype="multipart/form-data" action="/edit-post/<?php echo $post_data['post_id']; ?>" method="POST">
+  <form enctype="multipart/form-data" action="/edit-post/<?php echo $post_data['post_slug']; ?>" method="POST">
     <?php if(isset($_SESSION['edit_message'])): ?>
       <div class="form-group">
         <?php echo $_SESSION['edit_message']; ?>
@@ -28,7 +28,7 @@
 <div class="form">
   <h2>Delete Post</h2>
 
-  <form action="/delete-post/<?php echo $post_data['post_id']; ?>" method="POST">
+  <form action="/delete-post/<?php echo $post_data['post_slug']; ?>" method="POST">
     <?php if(isset($_SESSION['delete_message'])): ?>
       <div class="form-group">
         <?php echo $_SESSION['delete_message']; ?>

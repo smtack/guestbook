@@ -8,13 +8,13 @@
       </div>
     <?php endif; ?>
     <div class="form-group">
-      <input type="text" name="user_name" value="<?php echo $user_info['user_name']; ?>">
+      <input type="text" name="user_name" value="<?php echo $user->user_name; ?>">
     </div>
     <div class="form-group">
-      <input type="text" name="user_username" value="<?php echo $user_info['user_username']; ?>">
+      <input type="text" name="user_username" value="<?php echo $user->user_username; ?>">
     </div>
     <div class="form-group">
-      <input type="text" name="user_email" value="<?php echo $user_info['user_email']; ?>">
+      <input type="text" name="user_email" value="<?php echo $user->user_email; ?>">
     </div>
     <div class="form-group">
       <input type="submit" name="update" value="Update Profile">

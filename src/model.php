@@ -116,14 +116,51 @@ class Model {
     return $stmt;
   }
 
-  private function exists($table, $arr) {
+  public function exists($table, $arr) {
     $res = $this->select($table, $arr);
 
     return ($res->rowCount() > 0) ? true : false;
   }
 
+  public function userForAuth($hash) {
+    $sql = "SELECT *
+            FROM
+              users
+            JOIN (SELECT
+              auth_user
+            FROM
+              user_auth
+            WHERE
+              auth_hash = :auth_hash
+            LIMIT 1) AS UA WHERE
+              users.user_username = UA.auth_user
+            LIMIT 1";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([':auth_hash' => $hash]);
+
+    if($stmt->rowCount() > 0) {
+      return $stmt->fetchObject();
+    } else {
+      return false;
+    }
+  }
+
+  public function authorizeUser($user) {
+    $chars = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890";
+    $hash = hash('sha256', $user['user_username']);
+
+    for($i = 0; $i < 12; $i++) {
+      $hash .= $chars[rand(0, 61)];
+    }
+
+    $this->insert('user_auth', array('auth_hash' => $hash, 'auth_user' => $user['user_username']));
+    setCookie('Auth', $hash);
+  }
+
   public function signupUser($user) {
     $this->insert("users", $user);
+    $this->authorizeUser($user);
 
     return true;
   }
@@ -135,6 +172,8 @@ class Model {
       $row = $res->fetch();
 
       if(password_verify($user['user_password'], $row['user_password'])) {
+        $this->authorizeUser($user);
+
         return true;
       } else {
         return false;
@@ -144,20 +183,17 @@ class Model {
     }
   }
 
-  public function logoutUser() {
+  public function logoutUser($hash) {
+    $this->delete('user_auth', array('auth_hash' => $hash));
+
+    setCookie('Auth', '', time() - 3600);
+
     session_destroy();
-  }
-
-  public function getUserInfo() {
-    $res = $this->select("users", array("user_username" => $_SESSION['user_username']));
-
-    $user_info = $res->fetch();
-
-    return $user_info;
   }
 
   public function updateInfo($user, $id) {
     $this->update("users", $user, array("user_id" => $id));
+    $this->authorizeUser($user);
 
     return true;
   }
@@ -175,7 +211,7 @@ class Model {
   }
 
   public function deleteProfile($user) {
-    $this->delete("users", array("user_id" => $user['user_id']));
+    $this->delete("users", array("user_id" => $user));
 
     return true;
   }
@@ -183,9 +219,73 @@ class Model {
   public function getProfile($user) {
     $res = $this->select("users", array("user_username" => $user));
 
-    $row = $res->fetch();
+    $user_info = $res->fetch();
+
+    return $user_info;
+  }
+
+  public function getProfileInfo($user, $profile) {
+    $sql = "SELECT
+              post_count,
+            IF
+              (post_title IS NULL, 'No Posts', post_title)
+            AS
+              post_title, followers, following, followed
+            FROM (SELECT COUNT(*) AS
+              post_count
+            FROM
+              posts
+            WHERE
+              post_by = $profile
+            ) AS PC LEFT JOIN (SELECT * FROM
+              posts
+            WHERE
+              post_by = $profile
+            ORDER BY
+              post_date
+            DESC LIMIT 1) AS P ON
+              P.post_by = $profile
+            JOIN ( SELECT COUNT(*) AS
+              followers
+            FROM
+              follows
+            WHERE
+              followee_id = $profile
+            ) AS FE JOIN (SELECT COUNT(*) AS
+              following
+            FROM
+              follows
+            WHERE
+              follows.user_id = $profile
+            ) AS FP JOIN (SELECT COUNT(*) AS
+              followed
+            FROM
+              follows
+            WHERE
+              followee_id = $profile
+            AND
+              follows.user_id = $user->user_id
+            ) AS F2;";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute();
+
+    $row = $stmt->fetch();
 
     return $row;
+  }
+
+  public function searchUsers($user_keywords) {
+    $user_keywords = htmlentities($user_keywords);
+
+    $sql = "SELECT * FROM users WHERE user_name OR user_username LIKE \"%" . $user_keywords . "%\" ORDER BY user_joined DESC";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute();
+
+    $results = $stmt->fetchAll();
+
+    return $results;
   }
 
   public function newPost($post) {
@@ -194,11 +294,31 @@ class Model {
     return true;
   }
 
-  public function getUsersPosts($user) {
-    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE user_id = :user_id ORDER BY post_date DESC";
-
+  public function getHomePosts($user) {
+    $sql = "SELECT *
+            FROM
+              posts
+            LEFT JOIN
+              users
+            ON
+              users.user_id = posts.post_by
+            WHERE
+              (post_by = users.user_id AND users.user_id = $user)
+            OR
+              (post_by = users.user_id AND post_by
+            IN
+              (SELECT
+                followee_id
+              FROM
+                follows
+              WHERE
+                follows.user_id = $user))
+            ORDER BY
+              post_date
+            DESC";
+    
     $stmt = $this->pdo->prepare($sql);
-    $stmt->execute([':user_id' => $user]);
+    $stmt->execute();
 
     $posts = $stmt->fetchAll();
 
@@ -216,11 +336,22 @@ class Model {
     return $posts;
   }
 
-  public function getPost($post) {
-    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE posts.post_id = :post_id";
+  public function getUsersPosts($user) {
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE user_id = :user_id ORDER BY post_date DESC";
 
     $stmt = $this->pdo->prepare($sql);
-    $stmt->execute([':post_id' => $post]);
+    $stmt->execute([':user_id' => $user]);
+
+    $posts = $stmt->fetchAll();
+
+    return $posts;
+  }
+
+  public function getPost($post) {
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE posts.post_slug = :post_slug";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([':post_slug' => $post]);
 
     $post = $stmt->fetch();
 
@@ -267,18 +398,28 @@ class Model {
     return $comments;
   }
 
-  public function search($keywords) {
-    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_content LIKE :post_content ORDER BY post_date DESC";
+  public function searchPosts($post_keywords) {
+    $post_keywords = htmlentities($post_keywords);
+
+    $sql = "SELECT * FROM posts LEFT JOIN users ON posts.post_by = users.user_id WHERE post_content LIKE \"%" . $post_keywords . "%\" ORDER BY post_date DESC";
 
     $stmt = $this->pdo->prepare($sql);
-
-    $keywords = htmlentities($keywords);
-    $keywords = "%{$keywords}%";
-
-    $stmt->execute([':post_content' => $keywords]);
+    $stmt->execute();
 
     $results = $stmt->fetchAll();
 
     return $results;
+  }
+
+  public function follow($user, $follow) {
+    $this->insert('follows', array('user_id' => $user->user_id, 'followee_id' => $follow));
+
+    return true;
+  }
+
+  public function unfollow($user, $follow) {
+    $this->delete('follows', array('user_id' => $user->user_id, 'followee_id' => $follow));
+
+    return true;
   }
 }
